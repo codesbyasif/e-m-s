@@ -11,7 +11,7 @@ const { confirmBookingAfterPayment } = require('./bookingController');
 // 2. Uncomment the line below and set STRIPE_SECRET_KEY in your .env file
 //    (see .env.example). Get your keys at https://dashboard.stripe.com/apikeys
 //
-// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 //
 // 3. This controller currently SIMULATES a successful payment so the rest
 //    of the API (bookings -> tickets -> revenue) can be tested end-to-end
@@ -47,7 +47,7 @@ const { confirmBookingAfterPayment } = require('./bookingController');
 exports.createPaymentIntent = async (req, res, next) => {
   try {
     const { bookingId, method = 'card' } = req.body;
-    const booking = await Booking.findById(bookingId).populate('event', 'name');
+    const booking = await Booking.findById(bookingId).populate('event', 'name price');
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
     if (String(booking.user) !== String(req.user._id)) {
       return res.status(403).json({ success: false, message: 'Forbidden' });
@@ -60,18 +60,51 @@ exports.createPaymentIntent = async (req, res, next) => {
       amount: booking.amount,
       method,
       status: 'pending',
-      // stripePaymentIntentId: paymentIntent.id, // TODO (Stripe): set once real Stripe call is in place
     });
 
     booking.payment = payment._id;
     await booking.save();
 
-    // ---- SIMULATED RESPONSE (replace with Stripe clientSecret) ----
+    const baseClientUrl = process.env.CLIENT_URL || 'http://localhost:5000';
+    const successUrl = `${baseClientUrl}?checkout_success=1&session_id={CHECKOUT_SESSION_ID}`;
+    // include bookingId in cancel URL so the frontend can identify which booking to clean up
+    const cancelUrl = `${baseClientUrl}?checkout_cancel=1&bookingId=${booking._id}`;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'payment',
+      customer_email: req.user.email,
+      line_items: [
+        {
+          price_data: {
+            currency: booking.currency || 'usd',
+            product_data: {
+              name: booking.event.name,
+              description: `Tickets for ${booking.event.name}`,
+            },
+            unit_amount: Math.round(booking.amount * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        paymentId: payment._id.toString(),
+        bookingId: booking._id.toString(),
+        userId: req.user._id.toString(),
+      },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+    });
+
+    payment.stripeCheckoutSessionId = session.id;
+    payment.stripePaymentIntentId = String(session.payment_intent || '');
+    await payment.save();
+
     res.status(201).json({
       success: true,
-      message: 'Payment intent created (simulated — integrate Stripe here).',
+      message: 'Stripe checkout session created.',
       payment,
-      // clientSecret: paymentIntent.client_secret, // TODO (Stripe)
+      checkoutUrl: session.url,
     });
   } catch (err) {
     next(err);
@@ -140,38 +173,41 @@ exports.getAllPayments = async (req, res, next) => {
 // Must be mounted with express.raw() — see notes at top of file.
 exports.handleWebhook = async (req, res, next) => {
   try {
-    // const sig = req.headers['stripe-signature'];
-    // let event;
-    // try {
-    //   event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    // } catch (err) {
-    //   return res.status(400).send(`Webhook signature verification failed: ${err.message}`);
-    // }
-    //
-    // switch (event.type) {
-    //   case 'payment_intent.succeeded': {
-    //     const intent = event.data.object;
-    //     const payment = await Payment.findOne({ stripePaymentIntentId: intent.id });
-    //     if (payment && payment.status !== 'success') {
-    //       payment.status = 'success';
-    //       await payment.save();
-    //       await confirmBookingAfterPayment(payment.booking);
-    //     }
-    //     break;
-    //   }
-    //   case 'payment_intent.payment_failed': {
-    //     const intent = event.data.object;
-    //     await Payment.findOneAndUpdate({ stripePaymentIntentId: intent.id }, { status: 'failed' });
-    //     break;
-    //   }
-    // }
-    //
-    // res.json({ received: true });
+    const sig = req.headers['stripe-signature'];
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+      return res.status(400).send(`Webhook signature verification failed: ${err.message}`);
+    }
 
-    res.status(501).json({
-      success: false,
-      message: 'Stripe webhook not yet implemented. See TODO comments in paymentController.js',
-    });
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        const payment = await Payment.findOne({ stripeCheckoutSessionId: session.id });
+        if (payment && payment.status !== 'success') {
+          payment.status = 'success';
+          await payment.save();
+          await confirmBookingAfterPayment(payment.booking);
+        }
+        break;
+      }
+      case 'checkout.session.async_payment_failed': {
+        const session = event.data.object;
+        await Payment.findOneAndUpdate({ stripeCheckoutSessionId: session.id }, { status: 'failed' });
+        break;
+      }
+      case 'payment_intent.payment_failed': {
+        const intent = event.data.object;
+        await Payment.findOneAndUpdate({ stripePaymentIntentId: intent.id }, { status: 'failed' });
+        break;
+      }
+      default:
+        break;
+    }
+
+    res.json({ received: true });
+
   } catch (err) {
     next(err);
   }

@@ -17,7 +17,7 @@ const sendUser = (user) => ({
 // @route POST /api/auth/register
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, phone, password, confirm } = req.body;
+    const { name, email, phone, password, confirm, adminCode } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, message: 'Please complete all required fields.' });
@@ -34,7 +34,18 @@ exports.register = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'An account with this email already exists.' });
     }
 
-    const user = await User.create({ name, email, phone, password, role: 'user' });
+    let role = 'user';
+    if (adminCode) {
+      if (!process.env.ADMIN_REGISTRATION_CODE) {
+        return res.status(500).json({ success: false, message: 'Admin registration is not configured.' });
+      }
+      if (adminCode !== process.env.ADMIN_REGISTRATION_CODE) {
+        return res.status(403).json({ success: false, message: 'Invalid admin registration code.' });
+      }
+      role = 'admin';
+    }
+
+    const user = await User.create({ name, email, phone, password, role });
     const token = signToken(user._id);
 
     res.status(201).json({ success: true, token, user: sendUser(user) });

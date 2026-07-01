@@ -6,6 +6,8 @@ const BookingSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     event: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true },
     tickets: { type: Number, required: true, min: 1 },
+    guestName: { type: String, trim: true },
+    guestPhone: { type: String, trim: true },
     amount: { type: Number, required: true }, // total amount in dollars
     status: { type: String, enum: ['pending', 'active', 'cancelled', 'failed', 'completed'], default: 'pending' },
     payment: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment' },

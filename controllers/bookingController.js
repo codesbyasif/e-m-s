@@ -8,7 +8,7 @@ const Ticket = require('../models/Ticket');
 // after successful payment (see paymentController -> confirmPayment / webhook).
 exports.createBooking = async (req, res, next) => {
   try {
-    const { eventId, tickets } = req.body;
+    const { eventId, tickets = 1, guestName, guestPhone } = req.body;
     if (!eventId || !tickets || tickets < 1) {
       return res.status(400).json({ success: false, message: 'eventId and a valid tickets count are required.' });
     }
@@ -19,12 +19,33 @@ exports.createBooking = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Not enough seats available.' });
     }
 
+    const cleanGuestName = guestName?.trim();
+    const cleanGuestPhone = guestPhone?.trim();
     const amount = event.price * tickets;
+
+    if (!cleanGuestName && !cleanGuestPhone) {
+      const existing = await Booking.findOne({
+        user: req.user._id,
+        event: event._id,
+        guestName: { $in: [null, ''] },
+        guestPhone: { $in: [null, ''] },
+        status: { $in: ['pending', 'active'] },
+      });
+
+      if (existing) {
+        existing.tickets += tickets;
+        existing.amount += amount;
+        await existing.save();
+        return res.status(200).json({ success: true, booking: existing, merged: true });
+      }
+    }
 
     const booking = await Booking.create({
       user: req.user._id,
       event: event._id,
       tickets,
+      guestName: cleanGuestName,
+      guestPhone: cleanGuestPhone,
       amount,
       status: 'pending',
     });
@@ -100,6 +121,10 @@ exports.cancelBooking = async (req, res, next) => {
       // restore seats if it had been confirmed
       await Event.findByIdAndUpdate(booking.event, { $inc: { seats: booking.tickets } });
     }
+
+    // Remove any associated tickets when the booking is cancelled
+    await Ticket.deleteMany({ booking: booking._id });
+
     booking.status = 'cancelled';
     await booking.save();
 

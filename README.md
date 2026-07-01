@@ -92,11 +92,13 @@ To go live:
 
 1. `npm install stripe`
 2. Add real keys to `.env` (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`)
-3. In `controllers/paymentController.js`, follow the `TODO (Stripe)` comments:
-   replace `createPaymentIntent` with a real `stripe.paymentIntents.create()`
-   call, and implement `handleWebhook` with `stripe.webhooks.constructEvent`.
-4. On the frontend, use Stripe.js/Elements with the returned `clientSecret`
-   to collect card details.
+3. In `controllers/paymentController.js`, Stripe Checkout is already integrated:
+   - `createPaymentIntent()` now creates a Stripe Checkout Session
+   - `handleWebhook()` verifies incoming Stripe webhook events
+4. Set up a Stripe webhook endpoint for `/api/payments/webhook` using the raw
+   request body and your `STRIPE_WEBHOOK_SECRET`.
+5. The frontend redirects automatically to `checkoutUrl` after booking creation.
+6. Confirm your app's `CLIENT_URL` in `.env` so Stripe redirect URLs are correct.
 
 ## MongoDB
 
