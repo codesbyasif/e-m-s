@@ -11,6 +11,8 @@ const UserSchema = new mongoose.Schema(
     city: { type: String, trim: true },
     bio: { type: String, trim: true },
     status: { type: String, enum: ['active', 'suspended'], default: 'active' },
+    resetCode: { type: String, select: false },
+    resetCodeExpiry: { type: Date, select: false },
   },
   { timestamps: true }
 );

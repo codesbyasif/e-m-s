@@ -80,6 +80,18 @@ const ApiService = {
     return this.request('/auth/register', { method: 'POST', body: payload });
   },
 
+  forgotPassword(email) {
+    return this.request('/auth/forgot-password', { method: 'POST', body: { email } });
+  },
+
+  verifyResetCode(email, code) {
+    return this.request('/auth/verify-reset-code', { method: 'POST', body: { email, code } });
+  },
+
+  resetPassword(email, code, password, confirm) {
+    return this.request('/auth/reset-password', { method: 'POST', body: { email, code, password, confirm } });
+  },
+
   getEvents(query = '?limit=100') {
     return this.request(`/events${query}`);
   },
@@ -484,12 +496,36 @@ function onOverlayClick(ev, id) {
 
 function openLoginModal() {
   closeModal('registerModal');
+  closeModal('forgotPasswordModal');
   openModal('loginModal');
 }
 
 function openRegisterModal() {
   closeModal('loginModal');
+  closeModal('forgotPasswordModal');
   openModal('registerModal');
+}
+
+function openForgotPasswordModal() {
+  closeModal('loginModal');
+  closeModal('registerModal');
+  document.getElementById('forgotEmail').value = '';
+  document.getElementById('forgotCode').value = '';
+  document.getElementById('forgotNewPassword').value = '';
+  document.getElementById('forgotConfirmPassword').value = '';
+  App.resetPasswordEmail = '';
+  App.resetPasswordCode = '';
+  showForgotPasswordStep(1);
+  openModal('forgotPasswordModal');
+}
+
+function showForgotPasswordStep(step) {
+  const step1 = document.getElementById('forgotStep1');
+  const step2 = document.getElementById('forgotStep2');
+  const step3 = document.getElementById('forgotStep3');
+  if (step1) step1.classList.toggle('hidden', step !== 1);
+  if (step2) step2.classList.toggle('hidden', step !== 2);
+  if (step3) step3.classList.toggle('hidden', step !== 3);
 }
 
 function swapAuth(which) {
@@ -544,6 +580,70 @@ function setupLoginEnterKey() {
         submitLogin();
       }
     });
+  }
+}
+
+async function submitForgotPassword() {
+  const email = document.getElementById('forgotEmail')?.value.trim();
+  if (!email) {
+    toast('Please enter your email address.', 'err');
+    return;
+  }
+
+  try {
+    const response = await ApiService.forgotPassword(email);
+    App.resetPasswordEmail = email;
+    toast(response.message || 'Verification code sent.', 'ok');
+    showForgotPasswordStep(2);
+  } catch (err) {
+    toast(err.message, 'err');
+  }
+}
+
+async function submitVerifyResetCode() {
+  const email = App.resetPasswordEmail || document.getElementById('forgotEmail')?.value.trim();
+  const code = document.getElementById('forgotCode')?.value.trim();
+  if (!email || !code) {
+    toast('Please enter the verification code.', 'err');
+    return;
+  }
+
+  try {
+    const response = await ApiService.verifyResetCode(email, code);
+    App.resetPasswordCode = code;
+    toast(response.message || 'Code verified.', 'ok');
+    showForgotPasswordStep(3);
+  } catch (err) {
+    toast(err.message, 'err');
+  }
+}
+
+async function submitResetPassword() {
+  const email = App.resetPasswordEmail || document.getElementById('forgotEmail')?.value.trim();
+  const code = App.resetPasswordCode || document.getElementById('forgotCode')?.value.trim();
+  const password = document.getElementById('forgotNewPassword')?.value;
+  const confirm = document.getElementById('forgotConfirmPassword')?.value;
+
+  if (!email || !code) {
+    toast('Verification details are missing.', 'err');
+    return;
+  }
+  if (!password || password.length < 6) {
+    toast('New password must be at least 6 characters.', 'err');
+    return;
+  }
+  if (password !== confirm) {
+    toast('Passwords do not match.', 'err');
+    return;
+  }
+
+  try {
+    const response = await ApiService.resetPassword(email, code, password, confirm);
+    toast(response.message || 'Password updated successfully.', 'ok');
+    closeModal('forgotPasswordModal');
+    openLoginModal();
+  } catch (err) {
+    toast(err.message, 'err');
   }
 }
 
@@ -1122,6 +1222,8 @@ const App = {
   currentEventId: null,
   editingEventId: null,
   guestBookingEventId: null,
+  resetPasswordEmail: '',
+  resetPasswordCode: '',
 };
 
 document.addEventListener('click', (e) => {
