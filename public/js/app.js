@@ -148,6 +148,16 @@ const formatDate = (value) => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
+// safe DOM helpers
+function setHtmlIfExists(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+function setTextIfExists(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
 function eventById(id) {
   return AppState.events.find((e) => String(e._id) === String(id));
 }
@@ -181,15 +191,77 @@ function eventCard(e) {
 }
 
 function renderLanding() {
+  // helpers for ongoing / same-day
+  function isSameDay(d) {
+    const date = new Date(d);
+    if (Number.isNaN(date.getTime())) return false;
+    const now = new Date();
+    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
+  }
+
+  function formatCountdown(d) {
+    const then = new Date(d).getTime();
+    const now = Date.now();
+    let diff = Math.floor((then - now) / 1000); // seconds
+    const future = diff >= 0;
+    diff = Math.abs(diff);
+    const hrs = Math.floor(diff / 3600);
+    const mins = Math.floor((diff % 3600) / 60);
+    const secs = diff % 60;
+    const parts = [];
+    if (hrs) parts.push(`${hrs}h`);
+    if (mins) parts.push(`${mins}m`);
+    parts.push(`${secs}s`);
+    return future ? `Starts in ${parts.join(' ')}` : `Started ${parts.join(' ')} ago`;
+  }
+
+  function ongoingCard(e) {
+    const price = formatMoney(e.price);
+    const startTs = new Date(e.date).toISOString();
+    return `<article class="event-card" onclick="openEventDetails('${e._id}')">
+      <div class="event-img" style="background-image:url('${e.img || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=900&q=80'}')">
+        <span class="event-cat-tag">${e.cat}</span>
+        <span class="event-price-tag">${price}</span>
+      </div>
+      <div class="event-body">
+        <h3 class="event-name">${e.name}</h3>
+        <div class="event-meta">
+          <span>📅 ${formatDate(e.date)}</span>
+          <span>📍 ${e.city}</span>
+        </div>
+        <div class="event-start" data-start="${startTs}">${formatCountdown(e.date)}</div>
+        <div class="event-foot">
+          <span class="event-rating">★ ${Number(e.rating || 0).toFixed(1)}</span>
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openEventDetails('${e._id}')">View Details</button>
+        </div>
+      </div>
+    </article>`;
+  }
+
   const categories = Array.from(new Set(AppState.events.map((e) => e.cat))).slice(0, 9);
   const featured = AppState.events.filter((e) => e.featured).slice(0, 4);
+  const ongoing = AppState.events.filter((e) => isSameDay(e.date) || e.status === 'ongoing').slice(0, 8);
   const upcoming = AppState.events.filter((e) => new Date(e.date) >= new Date()).slice(0, 4);
   const trending = AppState.events.filter((e) => e.trending).slice(0, 4);
 
-  document.getElementById('catGrid').innerHTML = categories.map(categoryCard).join('');
-  document.getElementById('featuredGrid').innerHTML = featured.map(eventCard).join('');
-  document.getElementById('upcomingGrid').innerHTML = upcoming.map(eventCard).join('');
-  document.getElementById('trendingGrid').innerHTML = trending.map(eventCard).join('');
+  setHtmlIfExists('catGrid', categories.map(categoryCard).join(''));
+  setHtmlIfExists('featuredGrid', featured.map(eventCard).join(''));
+  const og = document.getElementById('ongoingGrid');
+  if (og) og.innerHTML = ongoing.length ? ongoing.map(ongoingCard).join('') : '<p class="empty">No ongoing events.</p>';
+  setHtmlIfExists('upcomingGrid', upcoming.map(eventCard).join(''));
+  setHtmlIfExists('trendingGrid', trending.map(eventCard).join(''));
+
+  // live clocks
+  function updateEventClocks() {
+    document.querySelectorAll('.event-start[data-start]').forEach((el) => {
+      const ts = el.getAttribute('data-start');
+      if (!ts) return;
+      el.textContent = formatCountdown(ts);
+    });
+  }
+  if (window._eventClockInterval) clearInterval(window._eventClockInterval);
+  updateEventClocks();
+  window._eventClockInterval = setInterval(updateEventClocks, 1000);
 }
 
 function runHeroSearch() {
@@ -204,7 +276,7 @@ function runHeroSearch() {
   );
 
   toast(`${results.length} event${results.length === 1 ? '' : 's'} found`);
-  document.getElementById('upcomingGrid').innerHTML = results.map(eventCard).join('') || '<p class="empty">No events found.</p>';
+  setHtmlIfExists('upcomingGrid', results.map(eventCard).join('') || '<p class="empty">No events found.</p>');
   document.querySelector('#upcomingGrid').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
@@ -227,7 +299,7 @@ async function openEventDetails(id) {
   const total = e.price + gst + fee;
   const priceTxt = formatMoney(e.price);
 
-  document.getElementById('eventModalCard').innerHTML = `
+  setHtmlIfExists('eventModalCard', `
     <button class="modal-close light" onclick="closeModal('eventModal')" aria-label="Close">×</button>
     <div class="ev-banner" style="background-image:url('${e.img || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=900&q=80'}')">
       <div class="ev-banner-overlay">
@@ -282,7 +354,7 @@ async function openEventDetails(id) {
         </div>
       </aside>
     </div>
-  `;
+  `);
 
   openModal('eventModal');
 }
@@ -342,6 +414,35 @@ function handleCancelBooking(bookingId) {
       renderAll();
     })
     .catch((err) => toast(err.message, 'err'));
+}
+
+async function handlePayPendingBooking(bookingId) {
+  if (!AppState.user) {
+    App.postLoginAction = async () => handlePayPendingBooking(bookingId);
+    openLoginModal();
+    return;
+  }
+
+  const booking = AppState.bookings.find((b) => String(b._id) === String(bookingId));
+  if (!booking) {
+    toast('Unable to locate booking for payment.', 'err');
+    return;
+  }
+  if (booking.status !== 'pending') {
+    toast('This booking is not eligible for payment.', 'err');
+    return;
+  }
+
+  try {
+    const paymentResponse = await ApiService.createPaymentIntent(bookingId);
+    if (!paymentResponse?.checkoutUrl) {
+      throw new Error('Payment gateway did not return a checkout URL.');
+    }
+    toast('Redirecting to checkout to complete your payment...');
+    window.location.href = paymentResponse.checkoutUrl;
+  } catch (err) {
+    toast(err.message, 'err');
+  }
 }
 
 function submitGuestBooking() {
@@ -406,6 +507,46 @@ function fillDemo(role) {
   }
 }
 
+function setupLoginEnterKey() {
+  const emailInput = document.getElementById('loginEmail');
+  const passwordInput = document.getElementById('loginPassword');
+  if (!emailInput || !passwordInput) return;
+
+  const handleEnter = (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    if (!email) {
+      toast('Please enter your email before pressing Enter.', 'err');
+      return;
+    }
+    if (!password) {
+      toast('Please enter your password before pressing Enter.', 'err');
+      return;
+    }
+    submitLogin();
+  };
+
+  emailInput.addEventListener('keydown', handleEnter);
+  passwordInput.addEventListener('keydown', handleEnter);
+
+  // Also listen at the modal level in case inputs are dynamically focused
+  const loginModal = document.getElementById('loginModal');
+  if (loginModal) {
+    loginModal.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter') {
+        ev.preventDefault();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        if (!email) return toast('Please enter your email before pressing Enter.', 'err');
+        if (!password) return toast('Please enter your password before pressing Enter.', 'err');
+        submitLogin();
+      }
+    });
+  }
+}
+
 async function submitLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -461,6 +602,7 @@ async function submitRegister() {
 }
 
 function handleLogout() {
+  if (!confirm('Are you sure you want to log out?')) return;
   ApiService.clearSession();
   document.getElementById('app').classList.add('hidden');
   document.getElementById('landingPage').classList.remove('hidden');
@@ -473,24 +615,33 @@ async function enterApp() {
   AppState.user = session.user;
   document.getElementById('landingPage').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+  const roleNorm = (AppState.user.role || '').toString().toLowerCase();
   document.body.classList.remove('is-admin', 'is-user');
-  document.body.classList.add(AppState.user.role === 'admin' ? 'is-admin' : 'is-user');
+  document.body.classList.add(roleNorm === 'admin' ? 'is-admin' : 'is-user');
 
-  const initials = AppState.user.name.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+  const initials = (AppState.user.name || '').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   document.getElementById('sidebarAvatar').textContent = initials;
   document.getElementById('navAvatar').textContent = initials;
   document.getElementById('sidebarUserName').textContent = AppState.user.name;
-  document.getElementById('sidebarUserRole').textContent = AppState.user.role === 'admin' ? 'Organizer' : 'Member';
-  document.getElementById('navTagline').textContent = AppState.user.role === 'admin' ? 'Manage Events Professionally' : 'Discover · Book · Celebrate';
+  document.getElementById('sidebarUserRole').textContent = roleNorm === 'admin' ? 'Organizer' : 'Member';
+  document.getElementById('navTagline').textContent = roleNorm === 'admin' ? 'Manage Events Professionally' : 'Discover · Book · Celebrate';
   document.getElementById('userGreetName').textContent = AppState.user.name.split(' ')[0];
   document.getElementById('settName').value = AppState.user.name;
   document.getElementById('settEmail').value = AppState.user.email;
 
   buildSidebar(AppState.user.role);
   await loadUserData();
-  if (AppState.user.role === 'admin') await loadAdminData();
+  if (roleNorm === 'admin') await loadAdminData();
   renderAll();
-  navigateTo(AppState.user.role === 'admin' ? 'dashboard' : 'user-home');
+  navigateTo(roleNorm === 'admin' ? 'dashboard' : 'user-home');
+  // ensure dashboard is visible for admins — some CSS setups hide role-specific sections until body classes settle
+  if (roleNorm === 'admin') {
+    const dash = document.getElementById('dashboard');
+    if (dash && !dash.classList.contains('active')) {
+      dash.classList.add('active');
+      toast('Admin dashboard activated', 'ok');
+    }
+  }
 }
 
 function buildSidebar(role) {
@@ -503,7 +654,8 @@ function buildSidebar(role) {
     { label: 'My Activity', items: [['user-bookings', 'My Bookings', 'ticket'], ['user-tickets', 'My Tickets', 'qr']] },
     { label: 'Account', items: [['settings', 'Profile', 'gear']] },
   ];
-  const groups = role === 'admin' ? adminNav : userNav;
+  const roleNorm = (role || '').toString().toLowerCase();
+  const groups = roleNorm === 'admin' ? adminNav : userNav;
   const icons = {
     grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
     calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
@@ -517,7 +669,7 @@ function buildSidebar(role) {
     home: '<path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/>',
   };
 
-  document.getElementById('sidebarNav').innerHTML = groups
+  const sidebarHtml = groups
     .map((group) => `
       <p class="nav-label">${group.label}</p>
       ${group.items
@@ -535,6 +687,7 @@ function buildSidebar(role) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Logout
       </a>`;
+  setHtmlIfExists('sidebarNav', sidebarHtml);
 }
 
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
@@ -542,6 +695,20 @@ function toggleProfileMenu() { document.getElementById('profileMenu').classList.
 function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
 function toggleMobileNav() { document.getElementById('mobileNav').classList.toggle('open'); }
 function closeMobileNav() { document.getElementById('mobileNav').classList.remove('open'); }
+
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  if (btn && btn.setAttribute) btn.setAttribute('aria-pressed', String(isHidden));
+  // swap simple icon
+  if (btn) {
+    btn.innerHTML = isHidden
+      ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.14 20.14 0 0 1 4.23-5.26"/><path d="M1 1l22 22"/></svg>';
+  }
+}
 
 function navigateTo(id) {
   document.querySelectorAll('.section').forEach((section) => section.classList.remove('active'));
@@ -748,7 +915,10 @@ function renderUserBookings() {
         <td>${b.tickets}</td>
         <td><strong>${formatMoney(b.amount)}</strong></td>
         <td>${badge(b.status)}</td>
-        <td><button class="btn btn-ghost btn-sm" onclick="handleCancelBooking('${b._id}')">Cancel</button></td>
+        <td>
+          ${b.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="handlePayPendingBooking('${b._id}')">Pay Now</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="handleCancelBooking('${b._id}')">Cancel</button>
+        </td>
       </tr>`)
     .join('');
 }
@@ -931,7 +1101,8 @@ async function loadUserData() {
 }
 
 async function loadAdminData() {
-  if (!AppState.user || AppState.user.role !== 'admin') return;
+  if (!AppState.user) return;
+  if (((AppState.user.role || '').toString().toLowerCase()) !== 'admin') return;
   try {
     const [bookings, users, payments] = await Promise.all([
       ApiService.getAllBookings().catch(() => ({ bookings: [] })),
@@ -972,11 +1143,13 @@ async function initApp() {
   await handleCheckoutReturn();
   if (AppState.user) {
     await loadUserData();
-    if (AppState.user.role === 'admin') await loadAdminData();
+    const roleNorm = (AppState.user.role || '').toString().toLowerCase();
+    if (roleNorm === 'admin') await loadAdminData();
     await enterApp();
   } else {
     renderAll();
   }
+  setupLoginEnterKey();
 }
 
 async function handleCheckoutReturn() {
