@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EventHub — Discover Amazing Events Near You</title>
+  <meta name="description" content="EventHub is a premium event discovery and booking platform. Find hackathons, concerts, workshops, festivals and more near you." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ========== LANDING PAGE ========== -->
+  <div id="landingPage" class="landing-page">
+
+    <!-- Top Nav -->
+    <header class="land-nav">
+      <div class="land-nav-inner">
+        <a href="#" class="land-brand" onclick="goLanding(event)">
+          <div class="brand-mark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2" fill="currentColor"/></svg>
+          </div>
+          <div class="brand-text">
+            <strong>EventHub</strong>
+            <small>Discover · Book · Celebrate</small>
+          </div>
+        </a>
+
+        <nav class="land-links">
+          <a href="#home" class="land-link active">Home</a>
+          <a href="#events" class="land-link">Events</a>
+          <a href="#categories" class="land-link">Categories</a>
+          <a href="#about" class="land-link">About</a>
+          <a href="#contact" class="land-link">Contact</a>
+        </nav>
+
+        <div class="land-actions">
+          <div class="land-search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="navSearchInput" placeholder="Search events…" />
+          </div>
+          <button class="btn btn-primary land-signin" onclick="openLoginModal()">Sign In</button>
+          <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Menu">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+      <div class="mobile-nav" id="mobileNav">
+        <a href="#home" onclick="closeMobileNav()">Home</a>
+        <a href="#events" onclick="closeMobileNav()">Events</a>
+        <a href="#categories" onclick="closeMobileNav()">Categories</a>
+        <a href="#about" onclick="closeMobileNav()">About</a>
+        <a href="#contact" onclick="closeMobileNav()">Contact</a>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" id="home">
+      <div class="hero-bg">
+        <div class="hero-shape s1"></div>
+        <div class="hero-shape s2"></div>
+        <div class="hero-shape s3"></div>
+      </div>
+      <div class="hero-inner">
+        <span class="hero-eyebrow">✦ Premium events platform</span>
+        <h1 class="hero-title">Discover Amazing<br/><span class="gold-grad">Events</span> Near You</h1>
+        <p class="hero-sub">From intimate jazz nights to global tech summits — book unforgettable experiences crafted by the world's finest organizers.</p>
+
+        <div class="hero-search-card">
+          <div class="hero-search-field">
+            <label>Event</label>
+            <input type="text" id="heroSearchName" placeholder="Search event name" />
+          </div>
+          <div class="hero-search-field">
+            <label>City</label>
+            <input type="text" id="heroSearchCity" placeholder="Anywhere" />
+          </div>
+          <div class="hero-search-field">
+            <label>Category</label>
+            <select id="heroSearchCat">
+              <option value="">All categories</option>
+              <option>Hackathon</option><option>Concert</option><option>Stand-up Comedy</option>
+              <option>Webinar</option><option>Workshop</option><option>Business</option>
+              <option>Food Festival</option><option>Gaming</option><option>Marathon</option>
+            </select>
+          </div>
+          <button class="btn btn-primary hero-search-btn" onclick="runHeroSearch()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Search Events
+          </button>
+        </div>
+
+        <div class="hero-stats">
+          <div><strong>12k+</strong><span>Events hosted</span></div>
+          <div><strong>340k+</strong><span>Happy attendees</span></div>
+          <div><strong>4.9★</strong><span>Average rating</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="land-section" id="categories">
+      <div class="section-cap">
+        <span class="cap-eyebrow">Browse by interest</span>
+        <h2>Explore Categories</h2>
+        <p>Find the kind of night, day or weekend you're craving.</p>
+      </div>
+      <div class="cat-grid" id="catGrid"></div>
+    </section>
+
+    <!-- Featured -->
+    <section class="land-section alt" id="events">
+      <div class="section-cap">
+        <span class="cap-eyebrow">Hand-picked</span>
+        <h2>Featured Events</h2>
+        <p>Curated experiences our editors are loving this week.</p>
+      </div>
+      <div class="event-grid" id="featuredGrid"></div>
+    </section>
+
+    <!-- Upcoming -->
+    <section class="land-section">
+      <div class="section-cap">
+        <span class="cap-eyebrow">Don't miss</span>
+        <h2>Upcoming Events</h2>
+        <p>Next on the calendar — book before they're gone.</p>
+      </div>
+      <div class="event-grid" id="upcomingGrid"></div>
+    </section>
+
+    <!-- Trending -->
+    <section class="land-section alt">
+      <div class="section-cap">
+        <span class="cap-eyebrow">Selling fast</span>
+        <h2>Trending Now</h2>
+        <p>What everyone in the community is booking right now.</p>
+      </div>
+      <div class="event-grid" id="trendingGrid"></div>
+    </section>
+
+    <!-- Why -->
+    <section class="land-section why-section" id="about">
+      <div class="section-cap">
+        <span class="cap-eyebrow">The EventHub difference</span>
+        <h2>Why Choose EventHub</h2>
+        <p>A premium experience for guests and organizers alike.</p>
+      </div>
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h3>Verified Organizers</h3>
+          <p>Every host is vetted so you can book with full confidence.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <h3>Secure Payments</h3>
+          <p>Bank-grade encryption and instant refund protection.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+          <h3>Instant QR Tickets</h3>
+          <p>Skip the lines with mobile QR check-in at every venue.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <h3>24/7 Concierge</h3>
+          <p>Our team is one tap away — before, during and after.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="land-footer" id="contact">
+      <div class="footer-grid">
+        <div>
+          <div class="land-brand" style="margin-bottom:14px">
+            <div class="brand-mark">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2" fill="currentColor"/></svg>
+            </div>
+            <div class="brand-text"><strong>EventHub</strong><small>Discover · Book · Celebrate</small></div>
+          </div>
+          <p class="footer-tag">Premium event discovery for the modern world.</p>
+        </div>
+        <div>
+          <h4>Explore</h4>
+          <a href="#events">Featured</a>
+          <a href="#categories">Categories</a>
+          <a href="#about">Why EventHub</a>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <a href="#">About</a><a href="#">Careers</a><a href="#">Press</a>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <a href="mailto:hello@eventhub.com">hello@eventhub.com</a>
+          <a href="#">+1 (555) 010-2030</a>
+          <a href="#">123 Crimson Ave, NYC</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 EventHub Studios. All rights reserved.</span>
+        <span>Crafted with care in NYC.</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ========== LOGIN MODAL ========== -->
+  <div class="modal-overlay" id="loginModal" onclick="onOverlayClick(event,'loginModal')">
+    <div class="modal-card auth-modal">
+      <button class="modal-close" onclick="closeModal('loginModal')" aria-label="Close">×</button>
+      <div class="auth-head">
+        <div class="login-logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2" fill="currentColor"/></svg>
+          </div>
+          <div class="login-brand-text">EventHub<small>Welcome back</small></div>
+        </div>
+        <h2>Sign in to your account</h2>
+        <p>Use your demo credentials to explore admin or user dashboards.</p>
+      </div>
+
+      <div class="demo-creds">
+        <button type="button" onclick="fillDemo('admin')"><strong>Admin</strong> admin@eventhub.com / admin123</button>
+        <button type="button" onclick="fillDemo('user')"><strong>User</strong> user@eventhub.com / user123</button>
+      </div>
+
+      <div class="form-group">
+        <label for="loginEmail">Email address</label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          <input type="email" id="loginEmail" placeholder="you@eventhub.com" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="loginPassword" placeholder="••••••••" />
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="checkbox-label"><input type="checkbox" id="loginRemember" checked /><span class="checkmark"></span>Remember me</label>
+        <a href="#" class="forgot-link">Forgot Password?</a>
+      </div>
+      <button class="btn-login" onclick="submitLogin()">
+        <span>Sign In</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <p class="auth-switch">New here? <a href="#" onclick="swapAuth('register')">Create an account</a></p>
+    </div>
+  </div>
+
+  <!-- ========== REGISTER MODAL ========== -->
+  <div class="modal-overlay" id="registerModal" onclick="onOverlayClick(event,'registerModal')">
+    <div class="modal-card auth-modal">
+      <button class="modal-close" onclick="closeModal('registerModal')" aria-label="Close">×</button>
+      <div class="auth-head">
+        <div class="login-logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="login-brand-text">EventHub<small>Join the experience</small></div>
+        </div>
+        <h2>Create your account</h2>
+        <p>Book unforgettable events in seconds.</p>
+      </div>
+
+      <div class="form-group">
+        <label>Full name</label>
+        <div class="input-wrap"><input type="text" id="regName" placeholder="Your full name" /></div>
+      </div>
+      <div class="form-group">
+        <label>Email address</label>
+        <div class="input-wrap"><input type="email" id="regEmail" placeholder="you@eventhub.com" /></div>
+      </div>
+      <div class="form-group">
+        <label>Phone number</label>
+        <div class="input-wrap"><input type="tel" id="regPhone" placeholder="+1 555 010 2030" /></div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap"><input type="password" id="regPassword" placeholder="At least 6 characters" /></div>
+      </div>
+      <div class="form-group">
+        <label>Confirm password</label>
+        <div class="input-wrap"><input type="password" id="regConfirm" placeholder="Repeat password" /></div>
+      </div>
+      <button class="btn-login" onclick="submitRegister()">
+        <span>Create Account</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <p class="auth-switch">Already have an account? <a href="#" onclick="swapAuth('login')">Sign in</a></p>
+    </div>
+  </div>
+
+  <!-- ========== EVENT DETAILS MODAL ========== -->
+  <div class="modal-overlay event-modal-overlay" id="eventModal" onclick="onOverlayClick(event,'eventModal')">
+    <div class="modal-card event-modal" id="eventModalCard"></div>
+  </div>
+
+  <!-- ========== APP SHELL (Admin + User dashboards share this) ========== -->
+  <div id="app" class="app hidden">
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+      <div class="navbar-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="brand">
+          <div class="brand-mark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2" fill="currentColor"/></svg>
+          </div>
+          <div class="brand-text">
+            <strong>EventHub</strong>
+            <small id="navTagline">Manage Events Professionally</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="navbar-center">
+        <div class="search-bar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" placeholder="Search events, bookings, customers…" />
+        </div>
+      </div>
+
+      <div class="navbar-right">
+        <button class="icon-btn" onclick="goLanding()" title="Back to site">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
+        </button>
+        <button class="icon-btn theme-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 3v2M12 19v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M3 12h2M19 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        </button>
+        <div class="profile-wrap">
+          <button class="profile-btn" onclick="toggleProfileMenu()">
+            <div class="avatar" id="navAvatar">U</div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="profile-menu hidden" id="profileMenu">
+            <a href="#" onclick="navigateTo('settings')">My Profile</a>
+            <a href="#" onclick="navigateTo('settings')">Settings</a>
+            <hr/>
+            <a href="#" onclick="handleLogout()" class="logout-link">Sign Out</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="layout">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-inner">
+          <div class="sidebar-user">
+            <div class="sidebar-avatar" id="sidebarAvatar">U</div>
+            <div>
+              <p class="sidebar-name" id="sidebarUserName">Demo User</p>
+              <span class="sidebar-role" id="sidebarUserRole">User</span>
+            </div>
+          </div>
+          <nav class="sidebar-nav" id="sidebarNav"></nav>
+        </div>
+      </aside>
+      <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+      <main class="main-content">
+
+        <!-- ===== ADMIN: DASHBOARD ===== -->
+        <section id="dashboard" class="section role-admin">
+          <div class="section-header">
+            <div>
+              <h2>Dashboard</h2>
+              <p>Welcome back. Here's what's happening with your events today.</p>
+            </div>
+            <div class="header-date" id="headerDate"></div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card wine">
+              <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+              <div class="stat-info"><p class="stat-value">24</p><p class="stat-label">Total Events</p></div>
+              <div class="stat-trend up">+3</div>
+            </div>
+            <div class="stat-card gold">
+              <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-4a2 2 0 0 0 0-4z"/></svg></div>
+              <div class="stat-info"><p class="stat-value">3,842</p><p class="stat-label">Tickets Sold</p></div>
+              <div class="stat-trend up">+12%</div>
+            </div>
+            <div class="stat-card green">
+              <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+              <div class="stat-info"><p class="stat-value">$184K</p><p class="stat-label">Total Revenue</p></div>
+              <div class="stat-trend up">+8.4%</div>
+            </div>
+            <div class="stat-card amber">
+              <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="stat-info"><p class="stat-value">412</p><p class="stat-label">Today's Check-ins</p></div>
+              <div class="stat-trend warn">Live</div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>Upcoming Events</h3><a href="#" class="link" onclick="navigateTo('events')">View all →</a></div>
+              <table class="data-table"><thead><tr><th>Event</th><th>Date</th><th>Venue</th><th>Sold</th><th>Status</th></tr></thead><tbody id="upcomingEventsTbody"></tbody></table>
+            </div>
+            <div>
+              <div class="card">
+                <div class="card-head"><h3>Event Status</h3></div>
+                <div class="mini-grid">
+                  <div class="mini-card live"><h4>Live</h4><div class="num">5</div></div>
+                  <div class="mini-card upcom"><h4>Upcoming</h4><div class="num">12</div></div>
+                  <div class="mini-card done"><h4>Completed</h4><div class="num">7</div></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h3>Revenue Summary</h3></div>
+                <p style="font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--wine-700)">$184,250</p>
+                <p style="font-size:12px;color:var(--gray-500);margin-bottom:14px">This month · +8.4% vs last</p>
+                <div style="height:8px;background:var(--gray-100);border-radius:20px;overflow:hidden"><div style="height:100%;width:68%;background:linear-gradient(90deg,var(--gold-500),var(--wine-700));border-radius:20px"></div></div>
+                <p style="font-size:12px;color:var(--gray-500);margin-top:8px">68% of monthly target</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2-eq">
+            <div class="card">
+              <div class="card-head"><h3>Recent Bookings</h3><a href="#" class="link" onclick="navigateTo('bookings')">All bookings →</a></div>
+              <table class="data-table"><thead><tr><th>Customer</th><th>Event</th><th>Amount</th><th>Status</th></tr></thead><tbody id="recentBookingsTbody"></tbody></table>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Ticket Sales Overview</h3></div>
+              <div class="chart-placeholder">
+                <div class="chart-bar" style="height:45%"></div><div class="chart-bar" style="height:62%"></div>
+                <div class="chart-bar" style="height:38%"></div><div class="chart-bar" style="height:78%"></div>
+                <div class="chart-bar" style="height:55%"></div><div class="chart-bar" style="height:88%"></div>
+                <div class="chart-bar" style="height:70%"></div>
+              </div>
+              <div class="legend" style="margin-top:12px"><span><i style="background:var(--gold-500)"></i>This week</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== ADMIN: EVENTS ===== -->
+        <section id="events" class="section role-admin">
+          <div class="section-header">
+            <div><h2>Events</h2><p>Manage all your events in one place.</p></div>
+            <div class="header-actions">
+              <button class="btn btn-ghost">Export</button>
+              <button class="btn btn-primary" onclick="navigateTo('create')">+ New Event</button>
+            </div>
+          </div>
+          <div class="card">
+            <table class="data-table"><thead><tr><th>Event Name</th><th>Category</th><th>Date</th><th>Venue</th><th>Capacity</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody id="eventsTbody"></tbody></table>
+          </div>
+        </section>
+
+        <!-- ===== ADMIN: CREATE ===== -->
+        <section id="create" class="section role-admin">
+          <div class="section-header"><div><h2>Create Event</h2><p>Set up a new event in minutes.</p></div></div>
+          <div class="card">
+            <form onsubmit="event.preventDefault(); publishEvent();">
+              <div class="form-grid">
+                <div class="form-field full"><label>Event Banner</label>
+                  <div class="dropzone"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+                    <p>Drop your banner here or click to upload</p><small>PNG, JPG up to 5MB · 1600×600 recommended</small>
+                  </div>
+                </div>
+                <div class="form-field"><label>Event Name</label><input type="text" placeholder="e.g. Vintage Wine Tasting Soirée" /></div>
+                <div class="form-field"><label>Category</label><select><option>Conference</option><option>Concert</option><option>Workshop</option><option>Gala</option><option>Festival</option><option>Networking</option></select></div>
+                <div class="form-field full"><label>Description</label><textarea placeholder="Tell guests what makes this event special..."></textarea></div>
+                <div class="form-field"><label>Venue</label><input type="text" placeholder="e.g. The Grand Ballroom" /></div>
+                <div class="form-field"><label>City</label><input type="text" placeholder="e.g. New York" /></div>
+                <div class="form-field"><label>Date</label><input type="date" /></div>
+                <div class="form-field"><label>Time</label><input type="time" /></div>
+                <div class="form-field"><label>Ticket Price ($)</label><input type="number" min="0" placeholder="75" /></div>
+                <div class="form-field"><label>Maximum Capacity</label><input type="number" min="1" placeholder="250" /></div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px">
+                <button type="button" class="btn btn-ghost">Save Draft</button>
+                <button type="submit" class="btn btn-primary">Publish Event</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- ===== ADMIN: BOOKINGS ===== -->
+        <section id="bookings" class="section role-admin">
+          <div class="section-header">
+            <div><h2>Bookings</h2><p>Track ticket purchases and reservation status.</p></div>
+            <div class="header-actions"><button class="btn btn-ghost">Filter</button><button class="btn btn-primary">Export CSV</button></div>
+          </div>
+          <div class="card"><table class="data-table"><thead><tr><th>Booking ID</th><th>Customer</th><th>Event</th><th>Tickets</th><th>Amount</th><th>Payment</th><th>Status</th></tr></thead><tbody id="bookingsTbody"></tbody></table></div>
+        </section>
+
+        <!-- ===== ADMIN: USERS ===== -->
+        <section id="users" class="section role-admin">
+          <div class="section-header"><div><h2>Users</h2><p>Manage your registered attendees.</p></div></div>
+          <div class="card"><table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Bookings</th><th>Joined</th><th>Status</th></tr></thead><tbody id="usersTbody"></tbody></table></div>
+        </section>
+
+        <!-- ===== ADMIN: CHECK-IN ===== -->
+        <section id="checkin" class="section role-admin">
+          <div class="section-header"><div><h2>QR Check-In</h2><p>Scan tickets or verify them manually.</p></div></div>
+          <div class="qr-grid">
+            <div class="card" style="padding:0;overflow:hidden">
+              <div class="qr-scanner-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM18 14h3M14 18h3M18 18h3v3h-3z"/></svg>
+                <h3>Point camera at QR code</h3><p>Scanner is active — tickets verify automatically</p>
+              </div>
+            </div>
+            <div>
+              <div class="card">
+                <div class="card-head"><h3>Manual Verification</h3></div>
+                <div class="form-field" style="margin-bottom:14px"><label>Ticket ID</label><input type="text" id="manualTicketId" placeholder="EVH-2025-00123" /></div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="verifyTicket()">Verify Ticket</button>
+                <div class="checkin-status" id="checkinStatus">
+                  <div class="status-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  <div><h4 id="checkinName">Aiden Park · VIP</h4><p id="checkinEvent">Vintage Wine Tasting Soirée · Seat A12</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== ADMIN: PAYMENTS ===== -->
+        <section id="payments" class="section role-admin">
+          <div class="section-header"><div><h2>Payments</h2><p>Track revenue, settlements, and transactions.</p></div></div>
+          <div class="stats-grid">
+            <div class="stat-card wine"><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="stat-info"><p class="stat-value">$184K</p><p class="stat-label">Total Revenue</p></div></div>
+            <div class="stat-card green"><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stat-info"><p class="stat-value">3,612</p><p class="stat-label">Successful</p></div></div>
+            <div class="stat-card amber"><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-info"><p class="stat-value">142</p><p class="stat-label">Pending</p></div></div>
+            <div class="stat-card gold"><div class="stat-icon" style="background:var(--red-50);color:var(--red-600)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div class="stat-info"><p class="stat-value">28</p><p class="stat-label">Failed</p></div></div>
+          </div>
+          <div class="card"><div class="card-head"><h3>Transaction History</h3></div><table class="data-table"><thead><tr><th>Txn ID</th><th>Customer</th><th>Event</th><th>Amount</th><th>Method</th><th>Date</th><th>Status</th></tr></thead><tbody id="paymentsTbody"></tbody></table></div>
+        </section>
+
+        <!-- ===== ADMIN: ANALYTICS ===== -->
+        <section id="analytics" class="section role-admin">
+          <div class="section-header"><div><h2>Analytics</h2><p>Insights into your events, audience and revenue.</p></div></div>
+          <div class="grid-2-eq">
+            <div class="card"><div class="card-head"><h3>Revenue (last 7 months)</h3></div><div class="chart-placeholder"><div class="chart-bar" style="height:35%"></div><div class="chart-bar" style="height:52%"></div><div class="chart-bar" style="height:48%"></div><div class="chart-bar" style="height:68%"></div><div class="chart-bar" style="height:75%"></div><div class="chart-bar" style="height:62%"></div><div class="chart-bar" style="height:88%"></div></div></div>
+            <div class="card"><div class="card-head"><h3>Ticket Sales by Category</h3></div><div class="donut-placeholder"></div><div class="legend"><span><i style="background:var(--wine-700)"></i>Concerts</span><span><i style="background:var(--gold-500)"></i>Conferences</span><span><i style="background:var(--wine-500)"></i>Galas</span><span><i style="background:var(--gold-400)"></i>Workshops</span></div></div>
+          </div>
+        </section>
+
+        <!-- ===== USER: HOME ===== -->
+        <section id="user-home" class="section role-user">
+          <div class="section-header">
+            <div><h2>Welcome back, <span id="userGreetName">friend</span> 👋</h2><p>Here's what's happening in your world of events.</p></div>
+            <div class="header-date" id="headerDateUser"></div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card wine"><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg></div><div class="stat-info"><p class="stat-value">3</p><p class="stat-label">Upcoming Events</p></div></div>
+            <div class="stat-card gold"><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9V7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2"/></svg></div><div class="stat-info"><p class="stat-value">7</p><p class="stat-label">Tickets Booked</p></div></div>
+            <div class="stat-card green"><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stat-info"><p class="stat-value">12</p><p class="stat-label">Events Attended</p></div></div>
+            <div class="stat-card amber"><div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="stat-info"><p class="stat-value">4.9</p><p class="stat-label">Your Rating</p></div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>Upcoming Events</h3><a href="#" class="link" onclick="navigateTo('user-browse')">Browse all →</a></div>
+            <div class="event-grid mini" id="userUpcomingGrid"></div>
+          </div>
+
+          <div class="grid-2-eq">
+            <div class="card">
+              <div class="card-head"><h3>Recent Bookings</h3><a href="#" class="link" onclick="navigateTo('user-bookings')">View all →</a></div>
+              <table class="data-table"><thead><tr><th>Event</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody id="userBookingsMiniTbody"></tbody></table>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>Quick Book</h3></div>
+              <p style="color:var(--gray-600);margin-bottom:14px">Tap an event you'll love and book in two clicks.</p>
+              <div class="quick-book-list" id="quickBookList"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>Recommended for you</h3></div>
+            <div class="event-grid mini" id="userRecommendedGrid"></div>
+          </div>
+        </section>
+
+        <!-- ===== USER: BROWSE ===== -->
+        <section id="user-browse" class="section role-user">
+          <div class="section-header"><div><h2>Browse Events</h2><p>Find your next unforgettable night.</p></div></div>
+          <div class="card" style="padding:18px"><div class="browse-filters">
+            <input type="text" id="browseQuery" placeholder="Search by name or venue…" oninput="renderUserBrowse()" />
+            <select id="browseCat" onchange="renderUserBrowse()">
+              <option value="">All categories</option>
+              <option>Gala</option><option>Conference</option><option>Concert</option><option>Festival</option><option>Workshop</option><option>Networking</option>
+            </select>
+          </div></div>
+          <div class="event-grid" id="userBrowseGrid"></div>
+        </section>
+
+        <!-- ===== USER: BOOKINGS ===== -->
+        <section id="user-bookings" class="section role-user">
+          <div class="section-header"><div><h2>My Bookings</h2><p>Your complete reservation history.</p></div></div>
+          <div class="card"><table class="data-table"><thead><tr><th>Booking ID</th><th>Event</th><th>Date</th><th>Tickets</th><th>Amount</th><th>Status</th></tr></thead><tbody id="userBookingsTbody"></tbody></table></div>
+        </section>
+
+        <!-- ===== USER: TICKETS ===== -->
+        <section id="user-tickets" class="section role-user">
+          <div class="section-header"><div><h2>My Tickets</h2><p>Scan the QR at the venue for instant entry.</p></div></div>
+          <div class="ticket-grid" id="userTicketsGrid"></div>
+        </section>
+
+        <!-- ===== SETTINGS (shared) ===== -->
+        <section id="settings" class="section role-admin role-user">
+          <div class="section-header"><div><h2>Profile & Settings</h2><p>Manage your account preferences.</p></div></div>
+          <div class="card">
+            <div class="card-head"><h3>Account Information</h3></div>
+            <div class="form-grid">
+              <div class="form-field"><label>Full Name</label><input type="text" id="settName" value="Demo User" /></div>
+              <div class="form-field"><label>Email</label><input type="email" id="settEmail" value="user@eventhub.com" /></div>
+              <div class="form-field"><label>Phone</label><input type="tel" value="+1 (555) 123-4567" /></div>
+              <div class="form-field"><label>City</label><input type="text" value="New York" /></div>
+              <div class="form-field full"><label>Bio</label><textarea>Lover of jazz nights, indie films and good wine.</textarea></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:20px"><button class="btn btn-primary">Save Changes</button></div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toastBox" class="toast-box"></div>
+
+  <script src="/js/script.js"></script>
+</body>
+</html>
