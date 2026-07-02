@@ -35,9 +35,8 @@
         </nav>
 
         <div class="land-actions">
-          <div class="land-search">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" id="navSearchInput" placeholder="Search events…" />
+          <div class="land-login">
+            
           </div>
           <button class="btn btn-primary land-signin" onclick="openLoginModal()">Sign In</button>
           <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Menu">
@@ -66,26 +65,12 @@
 
         <div class="hero-search-card">
           <div class="hero-search-field">
-            <label>Event</label>
-            <input type="text" id="heroSearchName" placeholder="Search event name" />
-          </div>
-          <div class="hero-search-field">
-            <label>City</label>
-            <input type="text" id="heroSearchCity" placeholder="Anywhere" />
-          </div>
-          <div class="hero-search-field">
-            <label>Category</label>
-            <select id="heroSearchCat">
-              <option value="">All categories</option>
-              <option>Hackathon</option><option>Concert</option><option>Stand-up Comedy</option>
-              <option>Webinar</option><option>Workshop</option><option>Business</option>
-              <option>Food Festival</option><option>Gaming</option><option>Marathon</option>
-              <option>Religious</option><option>Health</option><option>Fest</option>
+           
             </select>
           </div>
-          <button class="btn btn-primary hero-search-btn" onclick="runHeroSearch()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            Search Events
+          
+            
+           
           </button>
         </div>
 
@@ -101,7 +86,7 @@
       <section class="land-section alt">
         <div class="section-cap">
           <span class="cap-eyebrow">Happening</span>
-          <h2>Happening Now</h2>
+          <h2>Happening Today!</h2>
           <p>Events currently taking place — grab a last-minute ticket.</p>
         </div>
         <div class="event-grid" id="ongoingGrid"></div>
