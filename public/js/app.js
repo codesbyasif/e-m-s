@@ -211,8 +211,30 @@ function renderLanding() {
     return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate();
   }
 
+  function parseEventStart(dateValue, timeValue) {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return NaN;
+
+    if (!timeValue) return date.getTime();
+
+    const timeMatch = timeValue.trim().match(/^([0-9]{1,2})(?::([0-9]{2}))?\s*(AM|PM)?$/i);
+    if (!timeMatch) return date.getTime();
+
+    let hour = Number(timeMatch[1]);
+    const minute = Number(timeMatch[2] || '0');
+    const period = timeMatch[3];
+    if (period) {
+      const normalized = period.toUpperCase();
+      if (normalized === 'AM' && hour === 12) hour = 0;
+      if (normalized === 'PM' && hour < 12) hour += 12;
+    }
+
+    date.setHours(hour, minute, 0, 0);
+    return date.getTime();
+  }
+
   function formatCountdown(d) {
-    const then = new Date(d).getTime();
+    const then = Number(d) || new Date(d).getTime();
     const now = Date.now();
     let diff = Math.floor((then - now) / 1000); // seconds
     const future = diff >= 0;
@@ -229,7 +251,8 @@ function renderLanding() {
 
   function ongoingCard(e) {
     const price = formatMoney(e.price);
-    const startTs = new Date(e.date).toISOString();
+    const startMs = parseEventStart(e.date, e.time);
+    const startTs = Number.isNaN(startMs) ? new Date(e.date).toISOString() : new Date(startMs).toISOString();
     return `<article class="event-card" onclick="openEventDetails('${e._id}')">
       <div class="event-img" style="background-image:url('${e.img || 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=900&q=80'}')">
         <span class="event-cat-tag">${e.cat}</span>
@@ -241,7 +264,7 @@ function renderLanding() {
           <span>📅 ${formatDate(e.date)}</span>
           <span>📍 ${e.city}</span>
         </div>
-        <div class="event-start" data-start="${startTs}">${formatCountdown(e.date)}</div>
+        <div class="event-start" data-start="${startTs}">${formatCountdown(startMs || e.date)}</div>
         <div class="event-foot">
           <span class="event-rating">★ ${Number(e.rating || 0).toFixed(1)}</span>
           <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openEventDetails('${e._id}')">View Details</button>
