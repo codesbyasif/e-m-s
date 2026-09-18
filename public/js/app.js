@@ -816,8 +816,24 @@ function buildSidebar(role) {
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 function toggleProfileMenu() { document.getElementById('profileMenu').classList.toggle('hidden'); }
 function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
-function toggleMobileNav() { document.getElementById('mobileNav').classList.toggle('open'); }
-function closeMobileNav() { document.getElementById('mobileNav').classList.remove('open'); }
+function toggleMobileNav() {
+  const mobileNav = document.getElementById('mobileNav');
+  const toggle = document.querySelector('.mobile-nav-toggle');
+  if (!mobileNav) return;
+  const isOpen = mobileNav.classList.toggle('open');
+  if (toggle) toggle.setAttribute('aria-expanded', String(isOpen));
+}
+function closeMobileNav() {
+  const mobileNav = document.getElementById('mobileNav');
+  const toggle = document.querySelector('.mobile-nav-toggle');
+  if (mobileNav) mobileNav.classList.remove('open');
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+}
+
+function goToEvents() {
+  const role = (AppState.user?.role || '').toString().toLowerCase();
+  navigateTo(role === 'admin' ? 'admin-events' : 'user-browse');
+}
 
 function togglePassword(inputId, btn) {
   const input = document.getElementById(inputId);

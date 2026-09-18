@@ -18,7 +18,7 @@
     <!-- Top Nav -->
     <header class="land-nav">
       <div class="land-nav-inner">
-        <a href="#" class="land-brand" onclick="goLanding(event)">
+        <a href="#events" class="land-brand">
           <div class="brand-mark">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2" fill="currentColor"/></svg>
           </div>
@@ -39,7 +39,7 @@
             
           </div>
           <button class="btn btn-primary land-signin" onclick="openLoginModal()">Sign In</button>
-          <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Menu">
+          <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Menu" aria-expanded="false" aria-controls="mobileNav">
             <span></span><span></span><span></span>
           </button>
         </div>
@@ -48,6 +48,8 @@
         <a href="#home" onclick="closeMobileNav()">Home</a>
         <a href="#about" onclick="closeMobileNav()">About</a>
         <a href="#contact" onclick="closeMobileNav()">Contact</a>
+        <button type="button" class="mobile-auth-link" onclick="closeMobileNav(); openLoginModal();">Sign In</button>
+        <button type="button" class="mobile-auth-link primary" onclick="closeMobileNav(); openRegisterModal();">Create Account</button>
       </div>
     </header>
 
@@ -93,7 +95,7 @@
       </section>
 
     <!-- Upcoming -->
-    <section class="land-section">
+    <section class="land-section" id="events">
       <div class="section-cap">
         <span class="cap-eyebrow">Don't miss</span>
         <h2>Upcoming Events</h2>
@@ -371,9 +373,9 @@
           <span></span><span></span><span></span>
         </button>
         <div class="brand">
-          <div class="brand-mark">
+          <button class="brand-mark" onclick="goToEvents()" aria-label="Go to events" title="Events">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2" fill="currentColor"/></svg>
-          </div>
+          </button>
           <div class="brand-text">
             <strong>EventHub</strong>
             <small id="navTagline">Manage Events Professionally</small>
